@@ -18,6 +18,7 @@ const CELLS = document.querySelectorAll('.cell');
 const REPLAY_BTN = document.querySelectorAll('#replay')[0];
 const WINNER_COLOR = 'lightgreen';
 const LOOSER_COLOR = 'red';
+const TIE_COLOR = '#fdfdac'
 
 startGame();
 REPLAY_BTN.addEventListener('click', startGame);
@@ -138,7 +139,7 @@ function gameOver(gameWonObj) {
 	
 		for ([idOfSquare, currValue] of allSquaresIds.entries()) {
 			currSquare = document.getElementById(idOfSquare);
-			currSquare.style.backgroundColor = LOOSER_COLOR;
+			currSquare.style.backgroundColor = TIE_COLOR;
 		}
 	}
 
