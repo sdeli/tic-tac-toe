@@ -1,10 +1,10 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-// origBoard conatins the X and 0 values, which have been placed by the player and AI
-var origBoard;
-const huPlayersSign = 'O';
-const aiPlayersSign = 'X';
-const endGameModal = document.querySelectorAll('.endgame')[0];
-const winCombos = [
+// ORIG_BOARD conatins the X and 0 values, which have been placed by the player and AI
+var ORIG_BOARD;
+const HU_PLAYERS_SIGN = 'O';
+const AI_PLAYERS_SIGN = 'X';
+const END_GAME_MODAL = document.querySelectorAll('.endgame')[0];
+const WIN_COMBOS = [
 	[0, 1, 2],
 	[3, 4, 5],
 	[6, 7, 8],
@@ -14,60 +14,60 @@ const winCombos = [
 	[0, 4, 8],
 	[6, 4, 2]
 ]
-const cells = document.querySelectorAll('.cell');
-const replayBtn = document.querySelectorAll('#replay')[0];
-const winnerColor = 'lightgreen';
-const looserColor = 'red';
+const CELLS = document.querySelectorAll('.cell');
+const REPLAY_BTN = document.querySelectorAll('#replay')[0];
+const WINNER_COLOR = 'lightgreen';
+const LOOSER_COLOR = 'red';
 
 startGame();
-replayBtn.addEventListener('click', startGame);
+REPLAY_BTN.addEventListener('click', startGame);
 
 function startGame(){
 	hideEndGameModal();
 	wipeBoardFromPrevGame();
 
 	function hideEndGameModal() {
-		endGameModal.style.display = 'none';
+		END_GAME_MODAL.style.display = 'none';
 	}
 
 	//mit csinalnad az event listenerrel mert az nem ehhez a feladatkorhoz tartozik
 	function wipeBoardFromPrevGame() {
-		origBoard = [...Array(9)].map((item, index) => index);
-		cells.forEach((cell, index) => {
+		ORIG_BOARD = [...Array(9)].map((item, index) => index);
+		CELLS.forEach((cell, index) => {
 			cell.innerText = '';
 			cell.style.removeProperty('background-color');
-			cell.addEventListener('click', clickThenNextTurn, false);
+			cell.addEventListener('click', turnClick, false);
 		});
 	}
 }
 
 // hogy csinalnad itt a routingot / hogy strukturalnad az ifekete es hogy torned a sorokat
-function clickThenNextTurn(squareEvObj) {
+function turnClick(squareEvObj) {
 	if (!isSquareClicked(squareEvObj.target)) {
-		clickOnSquarequare(squareEvObj.target.id, huPlayersSign);
-		let hasHumanWon = IfWon(origBoard, huPlayersSign);
+
+		turn(squareEvObj.target.id, HU_PLAYERS_SIGN);
+		let hasHumanWon = IfWon(ORIG_BOARD, HU_PLAYERS_SIGN);
 
 		if (hasHumanWon) {
 			gameOver(hasHumanWon);
-			return;	
 		}
 
 		if (!ifTie() && !hasHumanWon) {
-			clickOnSquare(bestSquareId(), aiPlayersSign);
-			let hasAiWon = IfWon(origBoard, aiPlayersSign);
+			turn(bestSquareId(), AI_PLAYERS_SIGN);
+			let hasAiWon = IfWon(ORIG_BOARD, AI_PLAYERS_SIGN);
 			if (hasAiWon) gameOver(hasAiWon);
 		}	
 	}
 }
 
 // hova tenned ezt a halom kis seged funkciot amiket tobb fukcio is hasznal
-function clickOnSquare(squareId, playersSign){
-	origBoard[squareId] = playersSign;
+function turn(squareId, playersSign){
+	ORIG_BOARD[squareId] = playersSign;
 	document.getElementById(squareId).innerText = playersSign;
 }
 
 function emptySquares() {
-	let unclickedSquareIds = origBoard.reduce((accumulator, currSquareId, index) => {
+	let unclickedSquareIds = ORIG_BOARD.reduce((accumulator, currSquareId, index) => {
 		if (typeof currSquareId ===  'number') {
 			return [...accumulator, index];
 		} 
@@ -106,7 +106,7 @@ function IfWon(currentBoard, player) {
 
 	let hasPlayerWon = false;
 
-	for (const [indexOfCombination, winCombo] of winCombos.entries()) {
+	for (const [indexOfCombination, winCombo] of WIN_COMBOS.entries()) {
 		var HasWinningCombination = winCombo.every(currValue => {
 			return playersHitsOnBoard.indexOf(currValue) > -1
 		});
@@ -122,8 +122,7 @@ function IfWon(currentBoard, player) {
 
 // hova tenned ennek a nagyon funkcionak a sajat alfukcioit amiket csak o hasznal
 function gameOver(gameWonObj) {
-	console.log('over:');
-	console.log(gameWonObj);
+
 	if (gameWonObj === 'tie') {
 		higlightAllFields();
 		disableClickOnFields();
@@ -135,17 +134,17 @@ function gameOver(gameWonObj) {
 	}
 
 	function higlightAllFields(){
-		allSquaresIds = origBoard;
+		allSquaresIds = ORIG_BOARD;
 	
 		for ([idOfSquare, currValue] of allSquaresIds.entries()) {
 			currSquare = document.getElementById(idOfSquare);
-			currSquare.style.backgroundColor = looserColor;
+			currSquare.style.backgroundColor = LOOSER_COLOR;
 		}
 	}
 
 	function highlightWinningHits() {
-		winningSquaresIds = winCombos[gameWonObj.index];
-		highlightColor = (gameWonObj.player === huPlayersSign) ? winnerColor : looserColor;
+		winningSquaresIds = WIN_COMBOS[gameWonObj.index];
+		highlightColor = (gameWonObj.player === HU_PLAYERS_SIGN) ? WINNER_COLOR : LOOSER_COLOR;
 
 		winningSquaresIds.forEach(currentId => {
 			currentWinningSquare = document.getElementById(currentId);
@@ -154,24 +153,24 @@ function gameOver(gameWonObj) {
 	}
 
 	function disableClickOnFields() {
-		cells.forEach(cell => {
-			cell.removeEventListener('click', clickThenNextTurn, false)
+		CELLS.forEach(cell => {
+			cell.removeEventListener('click', turnClick, false)
 		})
 	}
 
 	function declaireWinner(player){
 		if (player === 'tie') {
 			declaireWinnerOnModal('ITS A TIE GAME', 'blue')
-		} else if (player === huPlayersSign) {
+		} else if (player === HU_PLAYERS_SIGN) {
 			declaireWinnerOnModal('YOU WON', 'lightgreen')
-		} else if (player === aiPlayersSign) {
+		} else if (player === AI_PLAYERS_SIGN) {
 			declaireWinnerOnModal('AI WON', 'red')
 		}
 
 		function declaireWinnerOnModal(message, textColor){
-			endGameModal.style.display = 'block';
-			endGameModal.style.color = textColor;
-			endGameModal.innerHTML = `<p>${message}</p>`;
+			END_GAME_MODAL.style.display = 'block';
+			END_GAME_MODAL.style.color = textColor;
+			END_GAME_MODAL.innerHTML = `<p>${message}</p>`;
 		}
 	}
 
