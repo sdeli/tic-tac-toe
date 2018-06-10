@@ -1,9 +1,9 @@
-// ORIG_BOARD conatins the X and 0 values, which have been placed by the player and AI
-var ORIG_BOARD;
+// VIRTUAL_BOARD conatins the X and 0 values, which have been placed by the player and AI
+let VIRTUAL_BOARD;
 const HU_PLAYERS_SIGN = 'O';
 const AI_PLAYERS_SIGN = 'X';
 const END_GAME_MODAL = document.querySelectorAll('.endgame')[0];
-const WIN_COMBOS = [
+const WIN_COMBOS_ARR = [
 	[0, 1, 2],
 	[3, 4, 5],
 	[6, 7, 8],
@@ -17,7 +17,8 @@ const CELLS = document.querySelectorAll('.cell');
 const REPLAY_BTN = document.querySelectorAll('#replay')[0];
 const WINNER_COLOR = 'lightgreen';
 const LOOSER_COLOR = 'red';
-const TIE_COLOR = '#fdfdac'
+const TIE_COLOR = '#fdfdac';
+let AI_DECISION_MAKING = require('./controller-modules/ai-decision-making.js');
 
 startGame();
 REPLAY_BTN.addEventListener('click', startGame);
@@ -32,7 +33,7 @@ function startGame(){
 
 	//mit csinalnad az event listenerrel mert az nem ehhez a feladatkorhoz tartozik
 	function wipeBoardFromPrevGame() {
-		ORIG_BOARD = [...Array(9)].map((item, index) => index);
+		VIRTUAL_BOARD = [...Array(9)].map((item, index) => index);
 		CELLS.forEach((cell, index) => {
 			cell.innerText = '';
 			cell.style.removeProperty('background-color');
@@ -46,7 +47,7 @@ function turnClick(squareEvObj) {
 	if (!isSquareClicked(squareEvObj.target)) {
 
 		turn(squareEvObj.target.id, HU_PLAYERS_SIGN);
-		let hasHumanWon = IfWon(ORIG_BOARD, HU_PLAYERS_SIGN);
+		let hasHumanWon = IfWon(VIRTUAL_BOARD, HU_PLAYERS_SIGN);
 
 		if (hasHumanWon) {
 			gameOver(hasHumanWon);
@@ -54,7 +55,7 @@ function turnClick(squareEvObj) {
 
 		if (!ifTie() && !hasHumanWon) {
 			turn(bestSquareId(), AI_PLAYERS_SIGN);
-			let hasAiWon = IfWon(ORIG_BOARD, AI_PLAYERS_SIGN);
+			let hasAiWon = IfWon(VIRTUAL_BOARD, AI_PLAYERS_SIGN);
 			if (hasAiWon) gameOver(hasAiWon);
 		}	
 	}
@@ -62,12 +63,12 @@ function turnClick(squareEvObj) {
 
 // hova tenned ezt a halom kis seged funkciot amiket tobb fukcio is hasznal
 function turn(squareId, playersSign){
-	ORIG_BOARD[squareId] = playersSign;
+	VIRTUAL_BOARD[squareId] = playersSign;
 	document.getElementById(squareId).innerText = playersSign;
 }
 
 function emptySquares() {
-	let unclickedSquareIds = ORIG_BOARD.reduce((accumulator, currSquareId, index) => {
+	let unclickedSquareIds = VIRTUAL_BOARD.reduce((accumulator, currSquareId, index) => {
 		if (typeof currSquareId ===  'number') {
 			return [...accumulator, index];
 		} 
@@ -78,6 +79,8 @@ function emptySquares() {
 }
 
 function bestSquareId() {
+	console.log('82:');
+	console.log(AI_DECISION_MAKING(WIN_COMBOS_ARR, VIRTUAL_BOARD, AI_PLAYERS_SIGN));
 	return emptySquares()[0];
 }
 
@@ -106,7 +109,7 @@ function IfWon(currentBoard, player) {
 
 	let hasPlayerWon = false;
 
-	for (const [indexOfCombination, winCombo] of WIN_COMBOS.entries()) {
+	for (const [indexOfCombination, winCombo] of WIN_COMBOS_ARR.entries()) {
 		var HasWinningCombination = winCombo.every(currValue => {
 			return playersHitsOnBoard.indexOf(currValue) > -1
 		});
@@ -134,7 +137,7 @@ function gameOver(gameWonObj) {
 	}
 
 	function higlightAllFields(){
-		allSquaresIds = ORIG_BOARD;
+		allSquaresIds = VIRTUAL_BOARD;
 	
 		for ([idOfSquare, currValue] of allSquaresIds.entries()) {
 			currSquare = document.getElementById(idOfSquare);
@@ -143,7 +146,7 @@ function gameOver(gameWonObj) {
 	}
 
 	function highlightWinningHits() {
-		winningSquaresIds = WIN_COMBOS[gameWonObj.index];
+		winningSquaresIds = WIN_COMBOS_ARR[gameWonObj.index];
 		highlightColor = (gameWonObj.player === HU_PLAYERS_SIGN) ? WINNER_COLOR : LOOSER_COLOR;
 
 		winningSquaresIds.forEach(currentId => {

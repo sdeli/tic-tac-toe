@@ -17,11 +17,48 @@
 		[6, 4, 2]
 	];
 	
-	origBoard = [...Array(9)].map((item, index) => index);
+/*	origBoard = [...Array(9)].map((item, index) => index);
 	let firstUnclickedSquareId = origBoard.filter((currSqaure) => {
 		return (typeof currSqaure ===  'number')
 	})[0];
-	console.log(firstUnclickedSquareId);
+	console.log(firstUnclickedSquareId);*/
+
+	let virtualBoardArr = [0, 1, 2,'x','0','0','x', 7, 8];
+	let huPlayersSign = '0';
+
+	let freeWinCombosArr = getfreeWinCombos(winCombos, virtualBoardArr, huPlayersSign);
+
+	function getfreeWinCombos(winCombosArr, virtualBoardArr, huPlayersSign) {
+
+	    let freeOrAiReservedSquares = getfreeOrAiReservedSquares(virtualBoardArr, huPlayersSign);
+
+	    // get winCombos, which consist just of freeOrAiReservedSquares
+	    let freeWinCombos = winCombosArr.reduce((accumulator, winCombo, index) => {
+	        let ifWincomboFree = winCombo.every(item => {
+	        	return freeOrAiReservedSquares.indexOf(item) > -1;
+	        });
+
+	        if (ifWincomboFree) {
+	          return [...accumulator, winCombo];
+	        } 
+
+	        return accumulator;
+	    },[]);
+
+	    return freeOrAiReservedSquares
+	}
+
+	function getfreeOrAiReservedSquares(virtualBoardArr, huPlayersSign) {
+	    let freeOrAiReservedSquares = virtualBoardArr.reduce((accumulator, square, index) => {
+	        if (square !==  huPlayersSign) {
+	          return [...accumulator, index];
+	        } 
+	        return accumulator;
+	    },[]);
+	    
+	    return freeOrAiReservedSquares
+	}	
+
 </script>
 </body>
 </html>
