@@ -36,15 +36,15 @@ function startGame(){
 		cells.forEach((cell, index) => {
 			cell.innerText = '';
 			cell.style.removeProperty('background-color');
-			cell.addEventListener('click', turnClick, false);
+			cell.addEventListener('click', clickThenNextTurn, false);
 		});
 	}
 }
 
 // hogy csinalnad itt a routingot / hogy strukturalnad az ifekete es hogy torned a sorokat
-function turnClick(squareEvObj) {
+function clickThenNextTurn(squareEvObj) {
 	if (!isSquareClicked(squareEvObj.target)) {
-		turn(squareEvObj.target.id, huPlayersSign);
+		clickOnSquarequare(squareEvObj.target.id, huPlayersSign);
 		let hasHumanWon = IfWon(origBoard, huPlayersSign);
 
 		if (hasHumanWon) {
@@ -53,7 +53,7 @@ function turnClick(squareEvObj) {
 		}
 
 		if (!ifTie() && !hasHumanWon) {
-			turn(bestSquareId(), aiPlayersSign);
+			clickOnSquare(bestSquareId(), aiPlayersSign);
 			let hasAiWon = IfWon(origBoard, aiPlayersSign);
 			if (hasAiWon) gameOver(hasAiWon);
 		}	
@@ -61,7 +61,7 @@ function turnClick(squareEvObj) {
 }
 
 // hova tenned ezt a halom kis seged funkciot amiket tobb fukcio is hasznal
-function turn(squareId, playersSign){
+function clickOnSquare(squareId, playersSign){
 	origBoard[squareId] = playersSign;
 	document.getElementById(squareId).innerText = playersSign;
 }
@@ -155,7 +155,7 @@ function gameOver(gameWonObj) {
 
 	function disableClickOnFields() {
 		cells.forEach(cell => {
-			cell.removeEventListener('click', turnClick, false)
+			cell.removeEventListener('click', clickThenNextTurn, false)
 		})
 	}
 
