@@ -9,7 +9,7 @@
 
 
 
-function aiDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign){
+function aiOffenceDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign){
     let freeWinCombosArr = getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign);
     // wincombos which ahve matches with Ai hits but thse indexes abstracted
     // so we can chose the next square to click
@@ -57,7 +57,7 @@ function getfreeOrAiReservedSquares(currentVirtualBoardArr, huPlayersSign) {
     return freeOrAiReservedSquares
 }   
 
-function getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, aiPlayersSign){
+function getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, playersSign){
     var aiHitsArr = getPlayerHits(currentVirtualBoardArr, aiPlayersSign);
 
     let shortestWinCombos = freeWinCombosArr
@@ -159,7 +159,7 @@ function randomIndexForArr(arrLength) {
     return Math.floor(Math.random() * arrLength);
 }
 
-module.exports = aiDecisionMaking;
+module.exports.aiOffenceDecisionMaking = aiOffenceDecisionMaking;
 },{}],2:[function(require,module,exports){
 // CURRENT_VIRTUAL_BOARD conatins the X and 0 values, which have been placed by the player and AI
 let CURRENT_VIRTUAL_BOARD;
@@ -181,7 +181,7 @@ const REPLAY_BTN = document.querySelectorAll('#replay')[0];
 const WINNER_COLOR = 'lightgreen';
 const LOOSER_COLOR = 'red';
 const TIE_COLOR = '#fdfdac';
-let AI_DECISION_MAKING = require('./controller-modules/ai-decision-making.js');
+let AI_DECISION_MAKING = require('./controller-modules/ai-offence-decision-making.js').aiOffenceDecisionMaking;
 
 startGame();
 REPLAY_BTN.addEventListener('click', startGame);
@@ -344,4 +344,4 @@ function gameOver(gameWonObj) {
 	}
 
 }
-},{"./controller-modules/ai-decision-making.js":1}]},{},[2]);
+},{"./controller-modules/ai-offence-decision-making.js":1}]},{},[2]);

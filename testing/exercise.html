@@ -27,189 +27,24 @@
 		[6, 4, 2]
 	];
 
+    WinCombosArr2 = [
+        [0, 1, 2],
+        [6, 7, 8],
+        [0, 3, 6],
+    ];
+    console.log(...WinCombosArr2);
 	let aiPlayersSign1 = 'x';
 	let huPlayersSign1 = '0';
 
 	let currentVirtualBoardArr1 = [0,1,2,3,4,5,6,7,8];
 
-	aiDecisionMaking(
-		winCombosArr1,
-	 	currentVirtualBoardArr1, 
-	 	aiPlayersSign1, 
-	 	huPlayersSign1
-	 )
-
-function aiDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign){
-    let freeWinCombosArr = getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign);
-    console.log('freeWinCombosArr:');
-    console.log(freeWinCombosArr);
-    console.log(freeWinCombosArr.length);
-    // wincombos which ahve matches with Ai hits but thse indexes abstracted
-    // so we can chose the next square to click
-    let shortestToWinCombosArr = getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, aiPlayersSign);    
-    console.log('shortestToWinCombosArr:');
-    console.log(shortestToWinCombosArr);
-    console.log(shortestToWinCombosArr.length > 0);
-    if (shortestToWinCombosArr.length > 0) {
-    	console.log('short');
-        let bestSquareToClick = chooseNextsquareFromCombos(shortestToWinCombosArr, 0);
-        console.log('bestSquareToClick:');
-        console.log(bestSquareToClick);
-        return bestSquareToClick;
-
-    } else if(shortestToWinCombosArr.length === 0 && freeWinCombosArr.length > 0) {
-        let goodSquareToClick = chooseNextsquareFromCombos(freeWinCombosArr);
-        console.log('goodSquareToClick:');
-        console.log(goodSquareToClick);
-        return freeWinCombosArr;
-
-    } else {
-       let emptySquares = chooseNextSquareToClick(currentVirtualBoardArr);
-       console.log('emptySquares:');
-       console.log(emptySquares);
-       return emptySquares;
+	var x = getCrossMatchingSquares(...freeWinCombosArr1, ...WinCombosArr2);
+    console.log(x);
+    
+    function getCrossMatchingSquares(...winComboArrs) {
+        let finalArr = [];
+        return finalArr.concat(...arguments)
     }
-}
-
-function getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign) {
- 	let  freeOrAiReservedSquares = getfreeOrAiReservedSquares(currentVirtualBoardArr, huPlayersSign);
-  	// get winCombos, which consist just of freeOrAiReservedSquares
-  	let freeWinCombos = winCombosArr.reduce((accumulator, winCombo, index) => {
-      	let ifWincomboFree = winCombo.every(item => {
-        	return freeOrAiReservedSquares.indexOf(item) > -1;
-      	});
-      	if (ifWincomboFree) {
-        	return [...accumulator, winCombo];
-      	} 
-
-      	return accumulator;
-  	},[]);
-  
-  	return freeWinCombos;
-}
-
-function getfreeOrAiReservedSquares(currentVirtualBoardArr, huPlayersSign) {
-    let freeOrAiReservedSquares = currentVirtualBoardArr.reduce((accumulator, square, index) => {
-        if (square !==  huPlayersSign) {
-          return [...accumulator, index];
-        } 
-        return accumulator;
-    },[]);
-    
-    return freeOrAiReservedSquares
-}   
-
-function getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, aiPlayersSign){
-    var aiHitsArr = getPlayerHits(currentVirtualBoardArr, aiPlayersSign);
-
-    let shortestWinCombos = freeWinCombosArr
-    .reduce((accumulator, winCombo, index) => {
-            let aiHitsMatchWinComboObj = getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo, index)
-
-            if (aiHitsMatchWinComboObj) {
-                return [...accumulator, aiHitsMatchWinComboObj]; 
-            }
-
-            return accumulator;
-    },[]);
-
-    // sort shortestWinCombos ascending by number of mathces
-    return shortestWinCombos.sort((winComboCurr, winComboNext) => 
-        winComboNext.numberOfMatches - winComboCurr.numberOfMatches
-    );
-}
-
-
-function getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo) {
-    let aiHitsMatchObj = {}
-    
-    for(let i = 0; i < winCombo.length; i++){
-        let  hasWinComboItemInAiHits = (aiHitsArr.indexOf(winCombo[i])) > -1;
-
-        if (hasWinComboItemInAiHits) {
-            if (!aiHitsMatchObj[`numberOfMatches`]) {
-                aiHitsMatchObj = {
-                    numberOfMatches : 0,
-                    matchesArr : winCombo.slice()
-                }
-            }//if
-
-            aiHitsMatchObj['numberOfMatches'] += 1;
-
-            // Abstracting the current matching ai hit
-            indexToAbstract =  aiHitsMatchObj['matchesArr'].indexOf(winCombo[i]);
-            aiHitsMatchObj['matchesArr'].splice(indexToAbstract,1)
-        } // if
-    } // for
-    
-    let isObjectEmpty = Boolean(Object.keys(aiHitsMatchObj).length) 
-
-    if (isObjectEmpty) {
-        return aiHitsMatchObj;
-    } else {
-        return false;
-    }
-}
-
-function getEmptySquares(currentVirtualBoardArr) {
-    let unclickedSquareIds = currentVirtualBoardArr.reduce((accumulator, currSquareId, index) => {
-        if (typeof currSquareId ===  'number') {
-            return [...accumulator, index];
-        } 
-    return accumulator;
-    },[]);
-
-  return unclickedSquareIds;
-}
-
-function getPlayerHits(currentVirtualBoardArr, playerSign) {
-    playersHits = currentVirtualBoardArr.reduce((accumulator, currSquareId, index) => {
-        if (currSquareId ===  playerSign) {
-            return [...accumulator, index];
-        } 
-    return accumulator;
-    },[]);
-    
-  return playersHits;
-}
-
-function chooseNextsquareFromCombos(winCombosArr ,whichIndex) {
-	console.log(winCombosArr);
-    console.log(whichIndex);
-    let chosenWincombo;
-    console.log(typeof whichIndex !== 'undefined');
-    if (typeof whichIndex !== 'undefined') {
-        console.log('true');
-        console.log(whichIndex);
-        chosenWincombo = winCombosArr[whichIndex];
-        console.log(chosenWincombo);
-    } else {
-        console.log('false');
-        let indexForwinCombosArr =  randomIndexForArr(winCombosArr.length);
-        chosenWincombo = winCombosArr[indexForwinCombosArr];
-        console.log(chosenWincombo);
-    }
-
-	if (!Array.isArray(chosenWincombo)) {
-		console.log('array');
-		return chooseNextSquareToClick(chosenWincombo.matchesArr);
-	} else {
-		console.log('return array');
-    	return chooseNextSquareToClick(chosenWincombo);
-	}
-}
-
-function chooseNextSquareToClick(squaresArr) {
-    let arrLength = squaresArr.length;
-    let nextSuqaresIndex = randomIndexForArr(arrLength);
-    console.log(nextSuqaresIndex);
-    return squaresArr[nextSuqaresIndex];
-}
-
-function randomIndexForArr(arrLength) {
-    return Math.floor(Math.random() * arrLength);
-}
-
 </script>
 </body>
 </html>

@@ -18,7 +18,7 @@ const REPLAY_BTN = document.querySelectorAll('#replay')[0];
 const WINNER_COLOR = 'lightgreen';
 const LOOSER_COLOR = 'red';
 const TIE_COLOR = '#fdfdac';
-let AI_DECISION_MAKING = require('./controller-modules/ai-decision-making.js');
+let AI_DECISION_MAKING = require('./controller-modules/ai-offence-decision-making.js').aiOffenceDecisionMaking;
 
 startGame();
 REPLAY_BTN.addEventListener('click', startGame);

@@ -8,7 +8,7 @@
 
 
 
-function aiDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign){
+function aiOffenceDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign){
     let freeWinCombosArr = getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign);
     // wincombos which ahve matches with Ai hits but thse indexes abstracted
     // so we can chose the next square to click
@@ -158,4 +158,5 @@ function randomIndexForArr(arrLength) {
     return Math.floor(Math.random() * arrLength);
 }
 
-module.exports = aiDecisionMaking;
+module.exports.aiDecisionMaking = aiDecisionMaking;
+module.exports.getShortestWinCombos = getShortestWinCombos;
