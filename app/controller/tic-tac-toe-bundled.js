@@ -1,54 +1,53 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-
 /*
-have a list of our hits
-every step - loop winningscombos
-      - collect combos where:  
-             - combo have our lists of hits or still virgin
-             - dont have hu player hit
-        from has all list item to has just 1 list item match
-           - if at least one combo 
-                - chose one combo randomly
-                - chose one index from combo randomly - from the combos with most matches
-           - if no combos
-                - select random empty square
-                */
+ * Title: ai-decision-making
+ * Description: creating the logic for the ai player
+ * Author: Sandor Deli
+ * Date: 
+ *
+ */
 
-function aiDecisionMaking(winCombosArr, virtualBoardArr, aiPlayersSign, huPlayersSign){
-    let freeWinCombosArr = getfreeWinCombos(freeOrAiReservedSquares, winCombosArr);
-    let shortestToWinCombos = getWinCombosWithAiHits(freeWinCombos);    
 
-    if (shortestToWinCombos.length > 0) {
-        return shortestToWinCombos
-    } else if(shortestToWinCombos.length === 0 && freeWinCombosArr > 0) {
-        return freeWinCombosArr;
+
+function aiDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign){
+    let freeWinCombosArr = getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign);
+    // wincombos which ahve matches with Ai hits but thse indexes abstracted
+    // so we can chose the next square to click
+    let shortestToWinCombosArr = getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, aiPlayersSign);    
+    
+    if (shortestToWinCombosArr.length > 0) {
+        let bestSquareToClick = chooseNextsquareFromCombos(shortestToWinCombosArr, 0);
+        return bestSquareToClick;
+
+    } else if(shortestToWinCombosArr.length === 0 && freeWinCombosArr.length > 0) {
+        let goodSquareToClick = chooseNextsquareFromCombos(freeWinCombosArr);
+        return goodSquareToClick;
+
     } else {
-       let emptySquares = getEmptySquares(virtualBoardArr);
+       let emptySquares = chooseNextSquareToClick(currentVirtualBoardArr);
+       return emptySquares;
     }
 }
 
-
-function getfreeWinCombos(winCombosArr, virtualBoardArr, huPlayersSign) {
-    let freeOrAiReservedSquares = getfreeOrAiReservedSquares(virtualBoardArr, huPlayersSign);
-
+function getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign) {
+    let  freeOrAiReservedSquares = getfreeOrAiReservedSquares(currentVirtualBoardArr, huPlayersSign);
     // get winCombos, which consist just of freeOrAiReservedSquares
     let freeWinCombos = winCombosArr.reduce((accumulator, winCombo, index) => {
         let ifWincomboFree = winCombo.every(item => {
             return freeOrAiReservedSquares.indexOf(item) > -1;
         });
-
         if (ifWincomboFree) {
-          return [...accumulator, winCombo];
+            return [...accumulator, winCombo];
         } 
 
         return accumulator;
     },[]);
-
-    return freeOrAiReservedSquares
+  
+    return freeWinCombos;
 }
 
-function getfreeOrAiReservedSquares(virtualBoardArr, huPlayersSign) {
-    let freeOrAiReservedSquares = virtualBoardArr.reduce((accumulator, square, index) => {
+function getfreeOrAiReservedSquares(currentVirtualBoardArr, huPlayersSign) {
+    let freeOrAiReservedSquares = currentVirtualBoardArr.reduce((accumulator, square, index) => {
         if (square !==  huPlayersSign) {
           return [...accumulator, index];
         } 
@@ -58,61 +57,112 @@ function getfreeOrAiReservedSquares(virtualBoardArr, huPlayersSign) {
     return freeOrAiReservedSquares
 }   
 
-function getWinCombosWithAiHits(freeWinCombosArr){
-    freeWinCombosArr.reduce((accumulator, winCombo, index) => {
-            let aiHitsMatcWinComboObj = ifAiHitsMatcWinComboItems(aiHitsArr, winCombo, index)                    
-            return [...accumulator, AiHitsMatchObj]; 
-    },[]);
-}
+function getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, aiPlayersSign){
+    var aiHitsArr = getPlayerHits(currentVirtualBoardArr, aiPlayersSign);
 
+    let shortestWinCombos = freeWinCombosArr
+    .reduce((accumulator, winCombo, index) => {
+            let aiHitsMatchWinComboObj = getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo, index)
 
-function ifAiHitsMatcWinComboItems(aiHitsArr, winCombo, indexInfreeWinCombosArr) {
-    let aiHitsMatchObj = {}
-
-    for(let i; i > aiHitsArr.length; i++){
-        hasHitInWinningCombo = winningCombo.indexOf(aiHitsArr[i]) + 1;
-
-        if (hasHitInWinningCombo > -1) {
-            if (!aiHitsMatchObj[`winCombo-${indexInWinCombosArr}`]) {
-                aiHitsMatchObj[`winCombo-${indexInWinCombosArr}`] = {
-                    numberOfMatches : 0,
-                    matchesArr : []
-                }
+            if (aiHitsMatchWinComboObj) {
+                return [...accumulator, aiHitsMatchWinComboObj]; 
             }
 
-            aiHitsMatchObj[`winCombo-${indexInWinCombosArr}`][numberOfMatches]++ 
-            aiHitsMatchObj[`winCombo-${indexInWinCombosArr}`][matchesArr].push(aiHitsArr[i]);
+            return accumulator;
+    },[]);
+
+    // sort shortestWinCombos ascending by number of mathces
+    return shortestWinCombos.sort((winComboCurr, winComboNext) => 
+        winComboNext.numberOfMatches - winComboCurr.numberOfMatches
+    );
+}
+
+
+function getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo) {
+    let aiHitsMatchObj = {}
+    
+    for(let i = 0; i < winCombo.length; i++){
+        let  hasWinComboItemInAiHits = (aiHitsArr.indexOf(winCombo[i])) > -1;
+
+        if (hasWinComboItemInAiHits) {
+            if (!aiHitsMatchObj[`numberOfMatches`]) {
+                aiHitsMatchObj = {
+                    numberOfMatches : 0,
+                    matchesArr : winCombo.slice()
+                }
+            }//if
+
+            aiHitsMatchObj['numberOfMatches'] += 1;
+
+            // Abstracting the current matching ai hit
+            indexToAbstract =  aiHitsMatchObj['matchesArr'].indexOf(winCombo[i]);
+            aiHitsMatchObj['matchesArr'].splice(indexToAbstract,1)
         } // if
     } // for
+    
+    let isObjectEmpty = Boolean(Object.keys(aiHitsMatchObj).length) 
 
-    return aiHitsMatchObj;
+    if (isObjectEmpty) {
+        return aiHitsMatchObj;
+    } else {
+        return false;
+    }
 }
 
-function chooseNextSquareToClick(squaresArr) {
-    let arrLength = aiHitsInwinCombosArr.length
-    let randomIndexForArr = Math.floor(Math.random() * arrLength);
-    return squaresArr[randomIndexForArr];
-}
-
-function getEmptySquares(virtualBoardArr) {
-  let unclickedSquareIds = virtualBoardArr.reduce((accumulator, currSquareId, index) => {
-    if (typeof currSquareId ===  'number') {
-      return [...accumulator, index];
-  } 
-  return accumulator;
-},[]);
+function getEmptySquares(currentVirtualBoardArr) {
+    let unclickedSquareIds = currentVirtualBoardArr.reduce((accumulator, currSquareId, index) => {
+        if (typeof currSquareId ===  'number') {
+            return [...accumulator, index];
+        } 
+    return accumulator;
+    },[]);
 
   return unclickedSquareIds;
 }
 
-function getRandomWincombo(winCombos) {
+function getPlayerHits(currentVirtualBoardArr, playerSign) {
+    playersHits = currentVirtualBoardArr.reduce((accumulator, currSquareId, index) => {
+        if (currSquareId ===  playerSign) {
+            return [...accumulator, index];
+        } 
+    return accumulator;
+    },[]);
+    
+  return playersHits;
+}
 
+function chooseNextsquareFromCombos(winCombosArr ,whichIndex) {
+    let chosenWincombo;
+
+    if (typeof whichIndex !== 'undefined') {
+        chosenWincombo = winCombosArr[whichIndex];
+    } else {
+        let indexForwinCombosArr =  randomIndexForArr(winCombosArr.length);
+        chosenWincombo = winCombosArr[indexForwinCombosArr];
+    }
+
+    if (!Array.isArray(chosenWincombo)) {
+        return chooseNextSquareToClick(chosenWincombo.matchesArr);
+    } else {
+        return chooseNextSquareToClick(chosenWincombo);
+    }
+}
+
+function chooseNextSquareToClick(squaresArr) {
+    let arrLength = squaresArr.length;
+    let nextSuqaresIndex = randomIndexForArr(arrLength);
+    
+    return squaresArr[nextSuqaresIndex];
+}
+
+function randomIndexForArr(arrLength) {
+    return Math.floor(Math.random() * arrLength);
 }
 
 module.exports = aiDecisionMaking;
 },{}],2:[function(require,module,exports){
-// VIRTUAL_BOARD conatins the X and 0 values, which have been placed by the player and AI
-let VIRTUAL_BOARD;
+// CURRENT_VIRTUAL_BOARD conatins the X and 0 values, which have been placed by the player and AI
+let CURRENT_VIRTUAL_BOARD;
 const HU_PLAYERS_SIGN = 'O';
 const AI_PLAYERS_SIGN = 'X';
 const END_GAME_MODAL = document.querySelectorAll('.endgame')[0];
@@ -146,7 +196,7 @@ function startGame(){
 
 	//mit csinalnad az event listenerrel mert az nem ehhez a feladatkorhoz tartozik
 	function wipeBoardFromPrevGame() {
-		VIRTUAL_BOARD = [...Array(9)].map((item, index) => index);
+		CURRENT_VIRTUAL_BOARD = [...Array(9)].map((item, index) => index);
 		CELLS.forEach((cell, index) => {
 			cell.innerText = '';
 			cell.style.removeProperty('background-color');
@@ -160,7 +210,7 @@ function turnClick(squareEvObj) {
 	if (!isSquareClicked(squareEvObj.target)) {
 
 		turn(squareEvObj.target.id, HU_PLAYERS_SIGN);
-		let hasHumanWon = IfWon(VIRTUAL_BOARD, HU_PLAYERS_SIGN);
+		let hasHumanWon = IfWon(CURRENT_VIRTUAL_BOARD, HU_PLAYERS_SIGN);
 
 		if (hasHumanWon) {
 			gameOver(hasHumanWon);
@@ -168,7 +218,7 @@ function turnClick(squareEvObj) {
 
 		if (!ifTie() && !hasHumanWon) {
 			turn(bestSquareId(), AI_PLAYERS_SIGN);
-			let hasAiWon = IfWon(VIRTUAL_BOARD, AI_PLAYERS_SIGN);
+			let hasAiWon = IfWon(CURRENT_VIRTUAL_BOARD, AI_PLAYERS_SIGN);
 			if (hasAiWon) gameOver(hasAiWon);
 		}	
 	}
@@ -176,12 +226,12 @@ function turnClick(squareEvObj) {
 
 // hova tenned ezt a halom kis seged funkciot amiket tobb fukcio is hasznal
 function turn(squareId, playersSign){
-	VIRTUAL_BOARD[squareId] = playersSign;
+	CURRENT_VIRTUAL_BOARD[squareId] = playersSign;
 	document.getElementById(squareId).innerText = playersSign;
 }
 
 function emptySquares() {
-	let unclickedSquareIds = VIRTUAL_BOARD.reduce((accumulator, currSquareId, index) => {
+	let unclickedSquareIds = CURRENT_VIRTUAL_BOARD.reduce((accumulator, currSquareId, index) => {
 		if (typeof currSquareId ===  'number') {
 			return [...accumulator, index];
 		} 
@@ -192,9 +242,12 @@ function emptySquares() {
 }
 
 function bestSquareId() {
-	console.log('82:');
-	console.log(AI_DECISION_MAKING(WIN_COMBOS_ARR, VIRTUAL_BOARD, AI_PLAYERS_SIGN));
-	return emptySquares()[0];
+	return  AI_DECISION_MAKING(
+		WIN_COMBOS_ARR,
+	 	CURRENT_VIRTUAL_BOARD, 
+	 	AI_PLAYERS_SIGN,
+	 	HU_PLAYERS_SIGN
+	 );
 }
 
 function isSquareClicked(square){
@@ -250,7 +303,7 @@ function gameOver(gameWonObj) {
 	}
 
 	function higlightAllFields(){
-		allSquaresIds = VIRTUAL_BOARD;
+		allSquaresIds = CURRENT_VIRTUAL_BOARD;
 	
 		for ([idOfSquare, currValue] of allSquaresIds.entries()) {
 			currSquare = document.getElementById(idOfSquare);

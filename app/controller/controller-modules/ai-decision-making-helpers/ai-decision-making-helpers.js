@@ -1,33 +1,3 @@
-/*
- * Title: ai-decision-making
- * Description: creating the logic for the ai player
- * Author: Sandor Deli
- * Date: 
- *
- */
-
-
-
-function aiDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign){
-    let freeWinCombosArr = getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign);
-    // wincombos which ahve matches with Ai hits but thse indexes abstracted
-    // so we can chose the next square to click
-    let shortestToWinCombosArr = getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, aiPlayersSign);    
-    
-    if (shortestToWinCombosArr.length > 0) {
-        let bestSquareToClick = chooseNextsquareFromCombos(shortestToWinCombosArr, 0);
-        return bestSquareToClick;
-
-    } else if(shortestToWinCombosArr.length === 0 && freeWinCombosArr.length > 0) {
-        let goodSquareToClick = chooseNextsquareFromCombos(freeWinCombosArr);
-        return goodSquareToClick;
-
-    } else {
-       let emptySquares = chooseNextSquareToClick(currentVirtualBoardArr);
-       return emptySquares;
-    }
-}
-
 function getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign) {
     let  freeOrAiReservedSquares = getfreeOrAiReservedSquares(currentVirtualBoardArr, huPlayersSign);
     // get winCombos, which consist just of freeOrAiReservedSquares
@@ -44,6 +14,7 @@ function getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign) {
   
     return freeWinCombos;
 }
+
 
 function getfreeOrAiReservedSquares(currentVirtualBoardArr, huPlayersSign) {
     let freeOrAiReservedSquares = currentVirtualBoardArr.reduce((accumulator, square, index) => {
@@ -76,7 +47,9 @@ function getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, aiPlayer
     );
 }
 
-
+/*This function returns a winning combination which has matches with the current ai
+hits and abstract the hits from the combo that it can be used to find out the next square
+to click*/
 function getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo) {
     let aiHitsMatchObj = {}
     
@@ -108,7 +81,8 @@ function getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo) {
     }
 }
 
-function getEmptySquares(currentVirtualBoardArr) {
+//get free squares occurring most times in winning combos
+function getBestSquareForFirstClick(currentVirtualBoardArr) {
     let unclickedSquareIds = currentVirtualBoardArr.reduce((accumulator, currSquareId, index) => {
         if (typeof currSquareId ===  'number') {
             return [...accumulator, index];
@@ -158,4 +132,7 @@ function randomIndexForArr(arrLength) {
     return Math.floor(Math.random() * arrLength);
 }
 
-module.exports = aiDecisionMaking;
+module.exports.getfreeWinCombos = getfreeWinCombos;
+module.exports.getShortestWinCombos = getShortestWinCombos;
+module.exports.chooseNextsquareFromCombos = chooseNextsquareFromCombos;
+module.exports.chooseNextSquareToClick = chooseNextSquareToClick;

@@ -1,5 +1,5 @@
-// VIRTUAL_BOARD conatins the X and 0 values, which have been placed by the player and AI
-let VIRTUAL_BOARD;
+// CURRENT_VIRTUAL_BOARD conatins the X and 0 values, which have been placed by the player and AI
+let CURRENT_VIRTUAL_BOARD;
 const HU_PLAYERS_SIGN = 'O';
 const AI_PLAYERS_SIGN = 'X';
 const END_GAME_MODAL = document.querySelectorAll('.endgame')[0];
@@ -33,7 +33,7 @@ function startGame(){
 
 	//mit csinalnad az event listenerrel mert az nem ehhez a feladatkorhoz tartozik
 	function wipeBoardFromPrevGame() {
-		VIRTUAL_BOARD = [...Array(9)].map((item, index) => index);
+		CURRENT_VIRTUAL_BOARD = [...Array(9)].map((item, index) => index);
 		CELLS.forEach((cell, index) => {
 			cell.innerText = '';
 			cell.style.removeProperty('background-color');
@@ -47,7 +47,7 @@ function turnClick(squareEvObj) {
 	if (!isSquareClicked(squareEvObj.target)) {
 
 		turn(squareEvObj.target.id, HU_PLAYERS_SIGN);
-		let hasHumanWon = IfWon(VIRTUAL_BOARD, HU_PLAYERS_SIGN);
+		let hasHumanWon = IfWon(CURRENT_VIRTUAL_BOARD, HU_PLAYERS_SIGN);
 
 		if (hasHumanWon) {
 			gameOver(hasHumanWon);
@@ -55,7 +55,7 @@ function turnClick(squareEvObj) {
 
 		if (!ifTie() && !hasHumanWon) {
 			turn(bestSquareId(), AI_PLAYERS_SIGN);
-			let hasAiWon = IfWon(VIRTUAL_BOARD, AI_PLAYERS_SIGN);
+			let hasAiWon = IfWon(CURRENT_VIRTUAL_BOARD, AI_PLAYERS_SIGN);
 			if (hasAiWon) gameOver(hasAiWon);
 		}	
 	}
@@ -63,12 +63,12 @@ function turnClick(squareEvObj) {
 
 // hova tenned ezt a halom kis seged funkciot amiket tobb fukcio is hasznal
 function turn(squareId, playersSign){
-	VIRTUAL_BOARD[squareId] = playersSign;
+	CURRENT_VIRTUAL_BOARD[squareId] = playersSign;
 	document.getElementById(squareId).innerText = playersSign;
 }
 
 function emptySquares() {
-	let unclickedSquareIds = VIRTUAL_BOARD.reduce((accumulator, currSquareId, index) => {
+	let unclickedSquareIds = CURRENT_VIRTUAL_BOARD.reduce((accumulator, currSquareId, index) => {
 		if (typeof currSquareId ===  'number') {
 			return [...accumulator, index];
 		} 
@@ -79,9 +79,12 @@ function emptySquares() {
 }
 
 function bestSquareId() {
-	console.log('82:');
-	console.log(AI_DECISION_MAKING(WIN_COMBOS_ARR, VIRTUAL_BOARD, AI_PLAYERS_SIGN));
-	return emptySquares()[0];
+	return  AI_DECISION_MAKING(
+		WIN_COMBOS_ARR,
+	 	CURRENT_VIRTUAL_BOARD, 
+	 	AI_PLAYERS_SIGN,
+	 	HU_PLAYERS_SIGN
+	 );
 }
 
 function isSquareClicked(square){
@@ -137,7 +140,7 @@ function gameOver(gameWonObj) {
 	}
 
 	function higlightAllFields(){
-		allSquaresIds = VIRTUAL_BOARD;
+		allSquaresIds = CURRENT_VIRTUAL_BOARD;
 	
 		for ([idOfSquare, currValue] of allSquaresIds.entries()) {
 			currSquare = document.getElementById(idOfSquare);

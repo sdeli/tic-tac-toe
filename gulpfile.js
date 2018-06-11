@@ -45,8 +45,8 @@ gulp.task("bundle-css", function(){
    		console.log( errorInfo.toString() )
    		this.emit('end');
    	})
-   	.pipe( rename(bundledCssSrcFileName) )
-   	.pipe( gulp.dest(bundledCssSrcFileDest) )
+   	.pipe(rename(bundledCssSrcFileName) )
+   	.pipe(gulp.dest(bundledCssSrcFileDest) )
 });
 
 gulp.task('default', () => {
@@ -54,5 +54,5 @@ gulp.task('default', () => {
 	gulp.watch('./app/view/css/css-modules/*.css', ['bundle-css']);
 	gulp.watch('./app/view/css/tic-tac-toe-style.css', ['bundle-css']);
 	gulp.watch('./app/controller/tic-tac-toe-unbundled.js', ['bundle-javascript']);
-	gulp.watch('./app/controller/controller-modules/*.js', ['bundle-javascript']);
+	gulp.watch('./app/controller/controller-modules/**/*.js', ['bundle-javascript']);
 });
