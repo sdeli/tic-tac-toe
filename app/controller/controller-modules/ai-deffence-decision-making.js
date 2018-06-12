@@ -11,26 +11,28 @@
             if not => click hu player best squareToWin
 */
 const AI_OFFENCE_DECISION_MAKING = require('./controller-modules/ai-offence-decision-making.js').aiOffenceDecisionMaking;
+const GET_SHORTEST_WINCOMBOS = require('./controller-modules/ai-offence-decision-making.js').getShortestWinCombos;
+const RANDOM_INDEX_FOR_ARR =  require('./controller-modules/ai-offence-decision-making.js').randomIndexForArr;
+const CHOOSE_NEXT_SQUARE_TO_CLICK =  require('./controller-modules/ai-offence-decision-making.js').chooseNextSquareToClick;
 
 /*returns wincombos as arr of arrs. Wincombos are in ascedning order by how many hits of player matches
 in combo */
-const GET_WINCOMBOS_ASCENDING = require('ai-offence-decision-making.js').getShortestWinCombos;
+const GET_SHORTEST_WINCOMBOS = require('ai-offence-decision-making.js').getShortestWinCombos;
 
 function aiDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign) {
     // first array will be the shortest                  
-    let husShortestWinComboLenght = getBestWinCombosLength(
+    let husShortestWinComboLenght = GET_SHORTEST_WINCOMBOS(
         winCombosArr, 
         currentVirtualBoardArr, 
         huPlayersSign
-    );
+    )[0].length;
 
-    let aisShortestWinComboLenght = getBestWinCombosLength(
+    let aisShortestWinComboLenght = GET_SHORTEST_WINCOMBOS(
         winCombosArr, 
         currentVirtualBoardArr, 
         aiPlayersSign
-    );
+    )[0].length;
 
-    // first array will be the shortest
     let paramtersArr = [
         winCombosArr, 
         currentVirtualBoardArr, 
@@ -43,8 +45,6 @@ function aiDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, h
     } else {
         AI_OFFENCE_DECISION_MAKING(...paramtersArr)
     }
-    /*Ai should click the squares which are crossing hu-s best combos and the same time
-    on ai-s best combos*/
 }
 
 
@@ -57,15 +57,13 @@ in defence (huplayerShortestCombos)
 */
 
 function aiDefenceDecesionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign) {
-    let husShortWinCombos = GET_WINCOMBOS_ASCENDING(
+    let husShortestWinCombos = GET_SHORTEST_WINCOMBOS(
         winCombosArr, 
         currentVirtualBoardArr, 
         playersSign
     )
 
-    let husShortestWinCombos = getShortestWincombos(husShortWinCombos);
-
-    let aisShortWinCombo = GET_WINCOMBOS_ASCENDING(
+    let aisShortestWinCombo = GET_SHORTEST_WINCOMBOS(
         winCombosArr, 
         currentVirtualBoardArr, 
         aiPlayersSign
@@ -74,6 +72,13 @@ function aiDefenceDecesionMaking(winCombosArr, currentVirtualBoardArr, aiPlayers
     let aisShortestWinCombos = getShortestWincombos(aisShortWinCombo);
 
     let squaresCrossHusWinCombos = getCrossMatchingSquares(aisShortestWinCombos, husShortestWinCombos);
+
+    if (squaresCrossHusWinCombos.length > 0) {
+        return CHOOSE_NEXT_SQUARE_TO_CLICK(squaresCrossHusWinCombos)
+    } else {
+        let aisBestSquares = concatarrs(...aisShortestWinCombos);
+        return CHOOSE_NEXT_SQUARE_TO_CLICK(aisBestSquares)
+    }
 }
 
 function getShortestWincombos(winCombosArr) {

@@ -69,43 +69,41 @@ function getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, aiPlayer
 
             return accumulator;
     },[]);
+    
+    sortWinCombosDescending(shortestWinCombos);
+    return getShortesWincombos(shortestWinCombos);
 
-    // sort shortestWinCombos ascending by number of mathces
-    return shortestWinCombos.sort((winComboCurr, winComboNext) => 
-        winComboNext.numberOfMatches - winComboCurr.numberOfMatches
-    );
 }
 
 
 function getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo) {
-    let aiHitsMatchObj = {}
+    let aiHitsMatchObj = winCombo;
     
     for(let i = 0; i < winCombo.length; i++){
         let  hasWinComboItemInAiHits = (aiHitsArr.indexOf(winCombo[i])) > -1;
-
-        if (hasWinComboItemInAiHits) {
-            if (!aiHitsMatchObj[`numberOfMatches`]) {
-                aiHitsMatchObj = {
-                    numberOfMatches : 0,
-                    matchesArr : winCombo.slice()
-                }
-            }//if
-
-            aiHitsMatchObj['numberOfMatches'] += 1;
-
             // Abstracting the current matching ai hit
-            indexToAbstract =  aiHitsMatchObj['matchesArr'].indexOf(winCombo[i]);
-            aiHitsMatchObj['matchesArr'].splice(indexToAbstract,1)
-        } // if
+        let indexToAbstract = aiHitsMatchObj['matchesArr'].indexOf(winCombo[i]);
+        aiHitsMatchObj.splice(indexToAbstract,1);
     } // for
     
-    let isObjectEmpty = Boolean(Object.keys(aiHitsMatchObj).length) 
+    let haveBeenMatches = aiHitsMatchObj.length > winCombo;
 
-    if (isObjectEmpty) {
+    if (haveBeenMatches) {
         return aiHitsMatchObj;
     } else {
         return false;
     }
+}
+
+function sortWinCombosDescending(wincombosArr) {
+    shortestWinCombos.sort((winComboCurr, winComboNext) => 
+        winComboCurr.length - winComboNext.length
+    );
+}
+
+function getShortesWincombos(wincombosArr) {
+    let firstComboLength = wincombosArr[0].length;
+    return wincombosArr.fiter(currCombo => currCombo.length >= firstComboLength);
 }
 
 function getEmptySquares(currentVirtualBoardArr) {
@@ -140,11 +138,7 @@ function chooseNextsquareFromCombos(winCombosArr ,whichIndex) {
         chosenWincombo = winCombosArr[indexForwinCombosArr];
     }
 
-    if (!Array.isArray(chosenWincombo)) {
-        return chooseNextSquareToClick(chosenWincombo.matchesArr);
-    } else {
-        return chooseNextSquareToClick(chosenWincombo);
-    }
+    return chooseNextSquareToClick(chosenWincombo);
 }
 
 function chooseNextSquareToClick(squaresArr) {
@@ -160,3 +154,5 @@ function randomIndexForArr(arrLength) {
 
 module.exports.aiDecisionMaking = aiDecisionMaking;
 module.exports.getShortestWinCombos = getShortestWinCombos;
+module.exports.randomIndexForArr = randomIndexForArr;
+module.exports.chooseNextSquareToClick = chooseNextSquareToClick;
