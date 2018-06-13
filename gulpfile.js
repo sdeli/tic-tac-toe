@@ -10,12 +10,12 @@ const gulpPostcss = require("gulp-postcss"),
 	  source = require('vinyl-source-stream'),
 	  gulp = require('gulp'),
 	  // When changing projects these need to be changed:
-	  jsSrcFile = './app/controller/tic-tac-toe-unbundled.js',
+	  jsSrcFile = './docs/controller/tic-tac-toe-unbundled.js',
 	  bundledJsSrcFileName = 'tic-tac-toe-bundled.js',
-	  bundledJsSrcFileDest = './app/controller/',
-	  cssSrcFile = "app/view/css/tic-tac-toe-style.css",
+	  bundledJsSrcFileDest = './docs/controller/',
+	  cssSrcFile = "docs/view/css/tic-tac-toe-style.css",
 	  bundledCssSrcFileName = 'tic-tac-toe-bundled-style.css',
-	  bundledCssSrcFileDest = 'app/view/css/';
+	  bundledCssSrcFileDest = 'docs/view/css/';
 
 let bundleJavascriptI = 0; 
 let bundleCssI = 0; 
@@ -51,8 +51,8 @@ gulp.task("bundle-css", function(){
 
 gulp.task('default', () => {
 	console.log('fut a default i: ' + bundleCssI);
-	gulp.watch('./app/view/css/css-modules/*.css', ['bundle-css']);
-	gulp.watch('./app/view/css/tic-tac-toe-style.css', ['bundle-css']);
-	gulp.watch('./app/controller/tic-tac-toe-unbundled.js', ['bundle-javascript']);
-	gulp.watch('./app/controller/controller-modules/**/*.js', ['bundle-javascript']);
+	gulp.watch('./docs/view/css/css-modules/*.css', ['bundle-css']);
+	gulp.watch('./docs/view/css/tic-tac-toe-style.css', ['bundle-css']);
+	gulp.watch('./docs/controller/tic-tac-toe-unbundled.js', ['bundle-javascript']);
+	gulp.watch('./docs/controller/controller-modules/**/*.js', ['bundle-javascript']);
 });
