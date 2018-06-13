@@ -40,6 +40,12 @@ table tr:last-child td {
 	color: white;
 	font-size: 2em;
 	border-radius: 5px;
+	position: absolute;
+	left: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+	top: 50%;
 }
 .endgame p {
 	text-align: center;
