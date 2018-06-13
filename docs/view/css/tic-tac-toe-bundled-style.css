@@ -51,3 +51,8 @@ table tr:last-child td {
 	text-align: center;
 	margin: auto 0;
 }
+.replay {
+	position: absolute;
+  top: -21%;
+  font-size: 2rem;
+}
