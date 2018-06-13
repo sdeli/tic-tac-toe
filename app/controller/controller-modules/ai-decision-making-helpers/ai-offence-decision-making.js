@@ -9,6 +9,7 @@
 
 
 function aiOffenceDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign){
+    console.log('offe');
     let freeWinCombosArr = getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign);
     // wincombos which ahve matches with Ai hits but thse indexes abstracted
     // so we can chose the next square to click
@@ -16,15 +17,25 @@ function aiOffenceDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayers
     
     if (shortestToWinCombosArr.length > 0) {
         let bestSquareToClick = chooseNextsquareFromCombos(shortestToWinCombosArr, 0);
+        console.log('offe bestSquareToClick:');
+        console.log(bestSquareToClick);
         return bestSquareToClick;
 
     } else if(shortestToWinCombosArr.length === 0 && freeWinCombosArr.length > 0) {
         let goodSquareToClick = chooseNextsquareFromCombos(freeWinCombosArr);
+        console.log('offe goodSquareToClick:');
+        console.log(goodSquareToClick);
         return goodSquareToClick;
 
     } else {
-       let emptySquares = chooseNextSquareToClick(currentVirtualBoardArr);
-       return emptySquares;
+        console.log('offe else');
+       let emptySquares = getEmptySquares(currentVirtualBoardArr);
+       console.log('emptySquares:');
+       console.log(emptySquares);
+       let emptySquare = chooseNextSquareToClick(emptySquares);
+       console.log('emptySquare:');
+       console.log(emptySquare);
+       return emptySquare;
     }
 }
 
@@ -58,52 +69,76 @@ function getfreeOrAiReservedSquares(currentVirtualBoardArr, huPlayersSign) {
 
 function getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, aiPlayersSign){
     var aiHitsArr = getPlayerHits(currentVirtualBoardArr, aiPlayersSign);
+    console.log(aiPlayersSign + 'hits:');
+    console.log(aiHitsArr);
+    console.log(aiPlayersSign + ' loop starts -------------------------------');
 
     let shortestWinCombos = freeWinCombosArr
     .reduce((accumulator, winCombo, index) => {
-            let aiHitsMatchWinComboObj = getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo, index)
-
-            if (aiHitsMatchWinComboObj) {
-                return [...accumulator, aiHitsMatchWinComboObj]; 
+        console.log('index: ' + index);
+            let aiHitsMatchWinComboArr = getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo, index)
+            console.log(index+'. accumulator:');
+            console.log(accumulator);
+            if (aiHitsMatchWinComboArr) {
+                return [...accumulator, aiHitsMatchWinComboArr]; 
             }
 
             return accumulator;
     },[]);
-    
+    console.log('loop ends -----------------------------------');
+    console.log('shortestWinCombos:');
+    console.log(shortestWinCombos);
     sortWinCombosDescending(shortestWinCombos);
-    return getShortesWincombos(shortestWinCombos);
-
+    console.log('sortWinCombosDescending:');
+    console.log(shortestWinCombos);
+    shortestWinCombos = trimmWincombos(shortestWinCombos);
+    console.log('trimmWincombos:');
+    console.log(shortestWinCombos);
+    return shortestWinCombos;
 }
 
 
 function getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo) {
-    let aiHitsMatchObj = winCombo;
-    
+    let aiHitsMatchArr = winCombo.slice();
+    console.log('winCombo:');
+    console.log(winCombo);
     for(let i = 0; i < winCombo.length; i++){
+        console.log('for '+ i +' -------------------------------');
         let  hasWinComboItemInAiHits = (aiHitsArr.indexOf(winCombo[i])) > -1;
+        console.log('hasWinComboItemInAiHits:');
+        console.log(hasWinComboItemInAiHits);
             // Abstracting the current matching ai hit
-        let indexToAbstract = aiHitsMatchObj['matchesArr'].indexOf(winCombo[i]);
-        aiHitsMatchObj.splice(indexToAbstract,1);
-    } // for
-    
-    let haveBeenMatches = aiHitsMatchObj.length > winCombo;
+        if (hasWinComboItemInAiHits) {
+            let indexToAbstract = aiHitsMatchArr.indexOf(winCombo[i]);
+            aiHitsMatchArr.splice(indexToAbstract,1);
+            console.log('aiHitsMatchArr:');
+            console.log(aiHitsMatchArr);
+        } // if
+      } // for
 
-    if (haveBeenMatches) {
-        return aiHitsMatchObj;
-    } else {
-        return false;
-    }
+    let haveBeenMatches = aiHitsMatchArr.length < winCombo.length;
+    console.log('haveBeenMatches:');
+    console.log(haveBeenMatches);
+    return aiHitsMatchArr;
 }
 
 function sortWinCombosDescending(wincombosArr) {
-    shortestWinCombos.sort((winComboCurr, winComboNext) => 
+    wincombosArr.sort((winComboCurr, winComboNext) => 
         winComboCurr.length - winComboNext.length
     );
 }
 
-function getShortesWincombos(wincombosArr) {
+
+function trimmWincombos(wincombosArr) {
+    if (wincombosArr.length < 1) return wincombosArr;
+
     let firstComboLength = wincombosArr[0].length;
-    return wincombosArr.fiter(currCombo => currCombo.length >= firstComboLength);
+
+    let trimmedArr = wincombosArr.filter(currCombo => {
+        return currCombo.length <= firstComboLength
+    });
+    
+    return trimmedArr;
 }
 
 function getEmptySquares(currentVirtualBoardArr) {
@@ -142,9 +177,14 @@ function chooseNextsquareFromCombos(winCombosArr ,whichIndex) {
 }
 
 function chooseNextSquareToClick(squaresArr) {
+    console.log('squaresArr:');
+    console.log(squaresArr);
     let arrLength = squaresArr.length;
     let nextSuqaresIndex = randomIndexForArr(arrLength);
-    
+    console.log('nextSuqaresIndex:');
+    console.log(nextSuqaresIndex);
+    console.log('squaresArr[nextSuqaresIndex]:');
+    console.log(squaresArr[nextSuqaresIndex]);
     return squaresArr[nextSuqaresIndex];
 }
 
@@ -152,7 +192,8 @@ function randomIndexForArr(arrLength) {
     return Math.floor(Math.random() * arrLength);
 }
 
-module.exports.aiDecisionMaking = aiDecisionMaking;
+module.exports.aiOffenceDecisionMaking = aiOffenceDecisionMaking;
 module.exports.getShortestWinCombos = getShortestWinCombos;
 module.exports.randomIndexForArr = randomIndexForArr;
 module.exports.chooseNextSquareToClick = chooseNextSquareToClick;
+module.exports.getfreeWinCombos = getfreeWinCombos;

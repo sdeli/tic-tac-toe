@@ -1,4 +1,70 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+/*  
+    check wincombos for hu player
+    check wincombos for ai player
+    if huPlayer has shorter win combos go defence
+    if not go offence
+
+     in defence (huplayerShortestCombos)
+        huplayersBestSquaresToWin
+        aiBestsquaresToWin
+            if matching square => click that
+            if not => click hu player best squareToWin
+*/
+const GET_SHORTEST_WINCOMBOS = require('./ai-offence-decision-making.js').getShortestWinCombos;
+const CHOOSE_NEXT_SQUARE_TO_CLICK =  require('./ai-offence-decision-making.js').chooseNextSquareToClick;
+const GET_FREE_WINCOMBOS =  require('./ai-offence-decision-making.js').getfreeWinCombos;
+
+function aiDefenceDecesionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign) {
+    console.log('deffe');
+    let huFreewinCombosArr = GET_FREE_WINCOMBOS(winCombosArr, currentVirtualBoardArr, aiPlayersSign)
+    let husShortestWinCombos = GET_SHORTEST_WINCOMBOS(
+        huFreewinCombosArr, 
+        currentVirtualBoardArr, 
+        huPlayersSign
+    )
+
+    let aiFreewinCombosArr = GET_FREE_WINCOMBOS(winCombosArr, currentVirtualBoardArr, huPlayersSign)
+    let aisShortestWinCombos = GET_SHORTEST_WINCOMBOS(
+        aiFreewinCombosArr, 
+        currentVirtualBoardArr, 
+        aiPlayersSign
+    );
+
+    let squaresCrossHusWinCombos = getCrossMatchingSquares(aisShortestWinCombos, husShortestWinCombos);
+
+    if (squaresCrossHusWinCombos.length > 0) {
+        return CHOOSE_NEXT_SQUARE_TO_CLICK(squaresCrossHusWinCombos)
+    } else {
+        let squareToCrossHu = concatarrs(...husShortestWinCombos);
+        return CHOOSE_NEXT_SQUARE_TO_CLICK(squareToCrossHu)
+    }
+}
+
+function getCrossMatchingSquares(aisShortestWinCombos, husShortestWinCombos) {
+    let aisBestSquares = concatarrs(...aisShortestWinCombos);
+    let husBestSquares = concatarrs(...husShortestWinCombos);
+
+    crossMatchingSquares = husBestSquares.reduce((accumulator, husBestSquare, index) => {
+       let hasAiSameSquareInCombos = aisBestSquares.indexOf(husBestSquare) > -1;
+
+       if (hasAiSameSquareInCombos) {
+        return [...accumulator, husBestSquare];
+       }
+
+       return accumulator;
+    }, []);
+
+    return crossMatchingSquares;
+}
+
+function concatarrs(...winComboArrs) {
+    let finalArr = [];
+    return finalArr.concat(...arguments)
+}
+
+module.exports.aiDefenceDecesionMaking = aiDefenceDecesionMaking;
+},{"./ai-offence-decision-making.js":2}],2:[function(require,module,exports){
 /*
  * Title: ai-decision-making
  * Description: creating the logic for the ai player
@@ -10,6 +76,7 @@
 
 
 function aiOffenceDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign){
+    console.log('offe');
     let freeWinCombosArr = getfreeWinCombos(winCombosArr, currentVirtualBoardArr, huPlayersSign);
     // wincombos which ahve matches with Ai hits but thse indexes abstracted
     // so we can chose the next square to click
@@ -17,15 +84,25 @@ function aiOffenceDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayers
     
     if (shortestToWinCombosArr.length > 0) {
         let bestSquareToClick = chooseNextsquareFromCombos(shortestToWinCombosArr, 0);
+        console.log('offe bestSquareToClick:');
+        console.log(bestSquareToClick);
         return bestSquareToClick;
 
     } else if(shortestToWinCombosArr.length === 0 && freeWinCombosArr.length > 0) {
         let goodSquareToClick = chooseNextsquareFromCombos(freeWinCombosArr);
+        console.log('offe goodSquareToClick:');
+        console.log(goodSquareToClick);
         return goodSquareToClick;
 
     } else {
-       let emptySquares = chooseNextSquareToClick(currentVirtualBoardArr);
-       return emptySquares;
+        console.log('offe else');
+       let emptySquares = getEmptySquares(currentVirtualBoardArr);
+       console.log('emptySquares:');
+       console.log(emptySquares);
+       let emptySquare = chooseNextSquareToClick(emptySquares);
+       console.log('emptySquare:');
+       console.log(emptySquare);
+       return emptySquare;
     }
 }
 
@@ -57,56 +134,78 @@ function getfreeOrAiReservedSquares(currentVirtualBoardArr, huPlayersSign) {
     return freeOrAiReservedSquares
 }   
 
-function getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, playersSign){
+function getShortestWinCombos(freeWinCombosArr, currentVirtualBoardArr, aiPlayersSign){
     var aiHitsArr = getPlayerHits(currentVirtualBoardArr, aiPlayersSign);
+    console.log(aiPlayersSign + 'hits:');
+    console.log(aiHitsArr);
+    console.log(aiPlayersSign + ' loop starts -------------------------------');
 
     let shortestWinCombos = freeWinCombosArr
     .reduce((accumulator, winCombo, index) => {
-            let aiHitsMatchWinComboObj = getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo, index)
-
-            if (aiHitsMatchWinComboObj) {
-                return [...accumulator, aiHitsMatchWinComboObj]; 
+        console.log('index: ' + index);
+            let aiHitsMatchWinComboArr = getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo, index)
+            console.log(index+'. accumulator:');
+            console.log(accumulator);
+            if (aiHitsMatchWinComboArr) {
+                return [...accumulator, aiHitsMatchWinComboArr]; 
             }
 
             return accumulator;
     },[]);
-
-    // sort shortestWinCombos ascending by number of mathces
-    return shortestWinCombos.sort((winComboCurr, winComboNext) => 
-        winComboNext.numberOfMatches - winComboCurr.numberOfMatches
-    );
+    console.log('loop ends -----------------------------------');
+    console.log('shortestWinCombos:');
+    console.log(shortestWinCombos);
+    sortWinCombosDescending(shortestWinCombos);
+    console.log('sortWinCombosDescending:');
+    console.log(shortestWinCombos);
+    shortestWinCombos = trimmWincombos(shortestWinCombos);
+    console.log('trimmWincombos:');
+    console.log(shortestWinCombos);
+    return shortestWinCombos;
 }
 
 
 function getWinComboAbstractedAiHitMatches(aiHitsArr, winCombo) {
-    let aiHitsMatchObj = {}
-    
+    let aiHitsMatchArr = winCombo.slice();
+    console.log('winCombo:');
+    console.log(winCombo);
     for(let i = 0; i < winCombo.length; i++){
+        console.log('for '+ i +' -------------------------------');
         let  hasWinComboItemInAiHits = (aiHitsArr.indexOf(winCombo[i])) > -1;
-
-        if (hasWinComboItemInAiHits) {
-            if (!aiHitsMatchObj[`numberOfMatches`]) {
-                aiHitsMatchObj = {
-                    numberOfMatches : 0,
-                    matchesArr : winCombo.slice()
-                }
-            }//if
-
-            aiHitsMatchObj['numberOfMatches'] += 1;
-
+        console.log('hasWinComboItemInAiHits:');
+        console.log(hasWinComboItemInAiHits);
             // Abstracting the current matching ai hit
-            indexToAbstract =  aiHitsMatchObj['matchesArr'].indexOf(winCombo[i]);
-            aiHitsMatchObj['matchesArr'].splice(indexToAbstract,1)
+        if (hasWinComboItemInAiHits) {
+            let indexToAbstract = aiHitsMatchArr.indexOf(winCombo[i]);
+            aiHitsMatchArr.splice(indexToAbstract,1);
+            console.log('aiHitsMatchArr:');
+            console.log(aiHitsMatchArr);
         } // if
-    } // for
-    
-    let isObjectEmpty = Boolean(Object.keys(aiHitsMatchObj).length) 
+      } // for
 
-    if (isObjectEmpty) {
-        return aiHitsMatchObj;
-    } else {
-        return false;
-    }
+    let haveBeenMatches = aiHitsMatchArr.length < winCombo.length;
+    console.log('haveBeenMatches:');
+    console.log(haveBeenMatches);
+    return aiHitsMatchArr;
+}
+
+function sortWinCombosDescending(wincombosArr) {
+    wincombosArr.sort((winComboCurr, winComboNext) => 
+        winComboCurr.length - winComboNext.length
+    );
+}
+
+
+function trimmWincombos(wincombosArr) {
+    if (wincombosArr.length < 1) return wincombosArr;
+
+    let firstComboLength = wincombosArr[0].length;
+
+    let trimmedArr = wincombosArr.filter(currCombo => {
+        return currCombo.length <= firstComboLength
+    });
+    
+    return trimmedArr;
 }
 
 function getEmptySquares(currentVirtualBoardArr) {
@@ -141,17 +240,18 @@ function chooseNextsquareFromCombos(winCombosArr ,whichIndex) {
         chosenWincombo = winCombosArr[indexForwinCombosArr];
     }
 
-    if (!Array.isArray(chosenWincombo)) {
-        return chooseNextSquareToClick(chosenWincombo.matchesArr);
-    } else {
-        return chooseNextSquareToClick(chosenWincombo);
-    }
+    return chooseNextSquareToClick(chosenWincombo);
 }
 
 function chooseNextSquareToClick(squaresArr) {
+    console.log('squaresArr:');
+    console.log(squaresArr);
     let arrLength = squaresArr.length;
     let nextSuqaresIndex = randomIndexForArr(arrLength);
-    
+    console.log('nextSuqaresIndex:');
+    console.log(nextSuqaresIndex);
+    console.log('squaresArr[nextSuqaresIndex]:');
+    console.log(squaresArr[nextSuqaresIndex]);
     return squaresArr[nextSuqaresIndex];
 }
 
@@ -160,7 +260,89 @@ function randomIndexForArr(arrLength) {
 }
 
 module.exports.aiOffenceDecisionMaking = aiOffenceDecisionMaking;
-},{}],2:[function(require,module,exports){
+module.exports.getShortestWinCombos = getShortestWinCombos;
+module.exports.randomIndexForArr = randomIndexForArr;
+module.exports.chooseNextSquareToClick = chooseNextSquareToClick;
+module.exports.getfreeWinCombos = getfreeWinCombos;
+
+},{}],3:[function(require,module,exports){
+/*  
+    check wincombos for hu player
+    check wincombos for ai player
+    if huPlayer has shorter win combos go defence
+    if not go offence
+
+     in defence (huplayerShortestCombos)
+        huplayersBestSquaresToWin
+        aiBestsquaresToWin
+            if matching square => click that
+            if not => click hu player best squareToWin
+*/
+const AI_OFFENCE_DECISION_MAKING = require('./ai-decision-making-helpers/ai-offence-decision-making.js').aiOffenceDecisionMaking;
+const AI_DEFENCE_DECESION_MAKING = require('./ai-decision-making-helpers/ai-deffence-decision-making.js').aiDefenceDecesionMaking;
+const GET_SHORTEST_WINCOMBOS = require('./ai-decision-making-helpers/ai-offence-decision-making.js').getShortestWinCombos;
+const GET_FREE_WINCOMBOS =  require('./ai-decision-making-helpers/ai-offence-decision-making.js').getfreeWinCombos;
+
+
+
+function aiDecisionMaking(winCombosArr, currentVirtualBoardArr, aiPlayersSign, huPlayersSign) {
+
+    console.log('aiDecisionMaking ******************************************** ');
+    console.log('aiDecisionMaking ******************************************** ');
+    console.log('aiDecisionMaking ******************************************** ');
+
+    let aiFreeWinCombosArr = GET_FREE_WINCOMBOS(winCombosArr, currentVirtualBoardArr, aiPlayersSign);
+    let husShortestWinCombo = GET_SHORTEST_WINCOMBOS(
+        aiFreeWinCombosArr, 
+        currentVirtualBoardArr, 
+        huPlayersSign
+    );
+
+    let husShortestWinComboLenght = getArrLength(husShortestWinCombo);
+    console.log('husShortestWinComboLenght:');
+    console.log(husShortestWinComboLenght);
+
+    let huFreeWinCombosArr = GET_FREE_WINCOMBOS(winCombosArr, currentVirtualBoardArr, huPlayersSign);
+    let aisShortestWinCombo = GET_SHORTEST_WINCOMBOS(
+        huFreeWinCombosArr, 
+        currentVirtualBoardArr, 
+        aiPlayersSign
+    );
+
+    let aisShortestWinComboLenght = getArrLength(aisShortestWinCombo);
+    
+    console.log('husShortestWinComboLenght:');
+    console.log(husShortestWinComboLenght);
+    console.log('aisShortestWinComboLenght:');
+    console.log(aisShortestWinComboLenght);
+    console.log('husShortestWinComboLenght > aisShortestWinComboLenght:');
+    console.log(husShortestWinComboLenght > aisShortestWinComboLenght);
+    
+    let paramtersArr = [
+        winCombosArr, 
+        currentVirtualBoardArr, 
+        aiPlayersSign, 
+        huPlayersSign
+    ]
+
+    if (husShortestWinComboLenght < aisShortestWinComboLenght) {
+        return AI_DEFENCE_DECESION_MAKING(...paramtersArr)
+    } else {
+        return AI_OFFENCE_DECISION_MAKING(...paramtersArr)
+    }
+}
+
+function getArrLength(arr){
+    if (arr.length > 0) {
+        return arr[0].length
+    } else {
+        return 0;
+    }
+}   
+
+module.exports.aiDecisionMaking = aiDecisionMaking;
+
+},{"./ai-decision-making-helpers/ai-deffence-decision-making.js":1,"./ai-decision-making-helpers/ai-offence-decision-making.js":2}],4:[function(require,module,exports){
 // CURRENT_VIRTUAL_BOARD conatins the X and 0 values, which have been placed by the player and AI
 let CURRENT_VIRTUAL_BOARD;
 const HU_PLAYERS_SIGN = 'O';
@@ -181,7 +363,7 @@ const REPLAY_BTN = document.querySelectorAll('#replay')[0];
 const WINNER_COLOR = 'lightgreen';
 const LOOSER_COLOR = 'red';
 const TIE_COLOR = '#fdfdac';
-let AI_DECISION_MAKING = require('./controller-modules/ai-offence-decision-making.js').aiOffenceDecisionMaking;
+let AI_DECISION_MAKING = require('./controller-modules/ai-decision-making.js').aiDecisionMaking;
 
 startGame();
 REPLAY_BTN.addEventListener('click', startGame);
@@ -344,4 +526,4 @@ function gameOver(gameWonObj) {
 	}
 
 }
-},{"./controller-modules/ai-offence-decision-making.js":1}]},{},[2]);
+},{"./controller-modules/ai-decision-making.js":3}]},{},[4]);
